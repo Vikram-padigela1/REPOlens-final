@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = [
+    "BLE001", # Allow catching Exception for API error handling and fallback
+    "E501",   # Line length
+    "RUF100", # Allow noqa comments that flake8 relies on
+]
+
+[tool.pyright]
+include = ["main.py", "app", "run_tests.py", "list_models.py"]
+exclude = ["venv", "__pycache__"]
+reportMissingImports = false
+reportPrivateImportUsage = false
+reportReturnType = false

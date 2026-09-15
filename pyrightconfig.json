@@ -1,0 +1,9 @@
+{
+  "venvPath": "backend",
+  "venv": "venv",
+  "extraPaths": ["backend"],
+  "include": ["backend/main.py", "backend/app", "backend/run_tests.py"],
+  "exclude": ["backend/venv", "frontend", "demo-repo"],
+  "reportMissingImports": "none",
+  "reportPrivateImportUsage": "none"
+}
