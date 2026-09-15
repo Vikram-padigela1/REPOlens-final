@@ -7,7 +7,9 @@ frontend/.env*.local
 backend/data/
 
 # Python
+venv
 venv/
+.venv
 .venv/
 backend/venv/
 **/__pycache__/
