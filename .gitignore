@@ -1,19 +1,36 @@
-# Backend
+# Environments & Secrets (never commit credentials, keep .env.example)
+.env
+*.env
+!.env.example
+backend/.env
+frontend/.env*.local
+backend/data/
+
+# Python
+venv/
+.venv/
 backend/venv/
 **/__pycache__/
 *.pyc
-backend/.env
-backend/data/
+*.pyo
+*.pyd
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
 
-# Frontend
+# JavaScript / TypeScript / Node
+node_modules/
 frontend/node_modules/
+demo-repo/node_modules/
+.next/
 frontend/.next/
 frontend/frontend/
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-
-# OS & Build artifacts
-.DS_Store
+out/
+dist/
+build/
 *.tsbuildinfo
+
+# OS & System
+.DS_Store
+Thumbs.db
+
