@@ -2,7 +2,7 @@ import { login, Request, Response } from '../auth/authController';
 import { registerUser, UserRequest, UserResponse } from '../users/userController';
 
 export interface ExpressApp {
-    post: (path: string, handler: (req: any, res: any) => void) => void;
+    post: <Req = unknown, Res = unknown>(path: string, handler: (req: Req, res: Res) => void) => void;
 }
 
 export function setupRoutes(app: ExpressApp): void {

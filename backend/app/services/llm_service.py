@@ -1,3 +1,5 @@
+import hashlib
+import math
 import os
 import warnings
 from pathlib import Path
@@ -28,7 +30,11 @@ def setup_genai() -> None:
         print("WARNING: GEMINI_API_KEY not set")
 
 
-EMBEDDING_MODEL = "models/gemini-embedding-2"
+EMBEDDING_MODELS = [
+    "models/gemini-embedding-2",
+    "models/gemini-embedding-001",
+    "models/gemini-embedding-2-preview",
+]
 GENERATION_MODELS = [
     "models/gemini-3.5-flash",
     "models/gemini-3.7-flash",
@@ -39,15 +45,40 @@ GENERATION_MODELS = [
 ]
 
 
+def _deterministic_local_embedding(text: str, dim: int = 3072) -> list[float]:
+    """Fallback local pseudo-embedding when Gemini API quota is exhausted."""
+    vec = [0.0] * dim
+    words = text.lower().split()
+    if not words:
+        return vec
+    for word in words:
+        h = int(hashlib.sha256(word.encode("utf-8")).hexdigest(), 16)
+        idx = h % dim
+        sign = 1.0 if ((h >> 8) & 1) else -1.0
+        vec[idx] += sign
+    norm = math.sqrt(sum(x * x for x in vec))
+    if norm > 0:
+        vec = [x / norm for x in vec]
+    return vec
+
+
 def generate_embeddings(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
     setup_genai()
-    response = genai.embed_content(
-        model=EMBEDDING_MODEL,
-        content=texts,
-    )
-    return cast(list[list[float]], response["embedding"])
+    for model_name in EMBEDDING_MODELS:
+        try:
+            response = genai.embed_content(
+                model=model_name,
+                content=texts,
+            )
+            return cast(list[list[float]], response["embedding"])
+        except Exception as e:
+            print(f"Warning: Embedding model {model_name} failed: {e}. Trying fallback...")
+
+    # If all remote models fail (e.g. 429 quota exhaustion), fallback locally
+    print("Warning: All remote embedding models exhausted. Using local fallback embeddings.")
+    return [_deterministic_local_embedding(t, dim=3072) for t in texts]
 
 
 def _generate_with_fallback(

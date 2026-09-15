@@ -1,24 +1,37 @@
 import os
 import pickle
 from pathlib import Path
+from typing import Any
 
+# pyrefly: ignore [missing-import]
 import faiss
+
+# pyrefly: ignore [missing-import]
 import numpy as np
 
 
 class VectorStore:
-    def __init__(self, dimension=3072, index_path=None, meta_path=None):
+    def __init__(
+        self,
+        dimension: int = 3072,
+        index_path: str | None = None,
+        meta_path: str | None = None,
+    ) -> None:
         base_dir = Path(__file__).resolve().parents[2] / "data"
         base_dir.mkdir(parents=True, exist_ok=True)
         self.dimension = dimension
-        self.index_path = str(index_path or (base_dir / "faiss_index.bin"))
-        self.meta_path = str(meta_path or (base_dir / "metadata.pkl"))
+        self.index_path: str = str(index_path or (base_dir / "faiss_index.bin"))
+        self.meta_path: str = str(meta_path or (base_dir / "metadata.pkl"))
         # Inner product for cosine similarity if normalized
-        self.index = faiss.IndexFlatIP(dimension)
-        self.metadata = {}  # map id (int) to dict
-        self._next_id = 0
+        self.index: Any = faiss.IndexFlatIP(dimension)
+        self.metadata: dict[int, dict[str, Any]] = {}
+        self._next_id: int = 0
 
-    def add(self, embeddings, metadata_list):
+    def add(
+        self,
+        embeddings: list[list[float]],
+        metadata_list: list[dict[str, Any]],
+    ) -> None:
         if not embeddings:
             return
 
@@ -40,7 +53,9 @@ class VectorStore:
         self._next_id += len(embeddings)
         self.save()
 
-    def search(self, query_embedding, k=5):
+    def search(
+        self, query_embedding: list[float], k: int = 5
+    ) -> list[dict[str, Any]]:
         if self._next_id == 0:
             return []
 
@@ -49,7 +64,7 @@ class VectorStore:
 
         distances, indices = self.index.search(q_matrix, k)
 
-        results = []
+        results: list[dict[str, Any]] = []
         for dist, idx in zip(distances[0], indices[0]):
             if idx != -1:
                 results.append(
@@ -60,7 +75,7 @@ class VectorStore:
                 )
         return results
 
-    def clear(self):
+    def clear(self) -> None:
         self.index = faiss.IndexFlatIP(self.dimension)
         self.metadata = {}
         self._next_id = 0
@@ -75,7 +90,7 @@ class VectorStore:
             except OSError:
                 pass
 
-    def save(self):
+    def save(self) -> None:
         os.makedirs(os.path.dirname(self.index_path), exist_ok=True)
         faiss.write_index(self.index, self.index_path)
         with open(self.meta_path, "wb") as f:
@@ -84,7 +99,7 @@ class VectorStore:
                 f,
             )
 
-    def load(self):
+    def load(self) -> None:
         if os.path.exists(self.index_path) and os.path.exists(self.meta_path):
             self.index = faiss.read_index(self.index_path)
             with open(self.meta_path, "rb") as f:

@@ -23,12 +23,14 @@ export default function Home() {
   const [repoUrl, setRepoUrl] = useState("");
   const [inputUrl, setInputUrl] = useState("");
   const [repoStats, setRepoStats] = useState<IngestResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const analyzeRepo = async (url: string) => {
     const trimmed = url.trim();
     if (!trimmed) return;
     setRepoUrl(trimmed);
     setRepoStatus("loading");
+    setErrorMessage("");
     try {
       const data = await fetchApi<IngestResponse>("/api/ingest", {
         method: "POST",
@@ -36,7 +38,10 @@ export default function Home() {
       });
       setRepoStats(data);
       setRepoStatus("success");
-    } catch {
+    } catch (err: unknown) {
+      console.error("Repository analysis failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMessage(msg);
       setRepoStatus("error");
     }
   };
@@ -163,9 +168,14 @@ export default function Home() {
         )}
 
         {repoStatus === "error" && (
-          <div className="flex-1 flex flex-col items-center justify-center text-[#ef4444]">
+          <div className="flex-1 flex flex-col items-center justify-center text-[#ef4444] px-4 max-w-xl mx-auto text-center">
             <h2 className="text-2xl font-medium mb-3">Unable to analyze repository.</h2>
-            <p className="text-[#8b949e]">Please verify the repository URL and try again.</p>
+            <p className="text-[#8b949e] mb-4">Please verify the repository URL and try again.</p>
+            {errorMessage && (
+              <div className="bg-[#1a0c0e] border border-[#ef4444]/30 rounded-lg p-3 text-xs text-[#fca5a5] font-mono max-w-md w-full overflow-auto max-h-32 text-left">
+                {errorMessage}
+              </div>
+            )}
             <button className="mt-8 bg-[#1a1e24] border border-[#2b303b] hover:bg-[#2b303b] text-white px-6 py-2 rounded-md font-medium" onClick={() => setRepoStatus("empty")}>
               Return Home
             </button>

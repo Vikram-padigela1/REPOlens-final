@@ -1,16 +1,19 @@
 # Backend
 backend/venv/
-backend/__pycache__/
+**/__pycache__/
+*.pyc
 backend/.env
 backend/data/
 
 # Frontend
 frontend/node_modules/
 frontend/.next/
+frontend/frontend/
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-# OS
+# OS & Build artifacts
 .DS_Store
+*.tsbuildinfo
